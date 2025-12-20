@@ -1,0 +1,349 @@
+Below is in-depth, step-by-step Git study material, focused on Terraform + Azure projects. 
+
+This will take you from Git basics → job-ready usage, with commands, concepts, and real project structure. 
+
+ 
+
+ 
+
+🔧 Git – Complete In-Depth Guide (Terraform & Azure Focus) 
+
+Image
+Image
+ 
+
+ 
+
+1️⃣ What is Git & Why It’s Mandatory 
+
+Git = Distributed Version Control System 
+
+Used to: 
+
+Track infrastructure code changes 
+
+Collaborate safely 
+
+Roll back mistakes 
+
+Enable CI/CD pipelines 
+
+👉 Terraform without Git is not acceptable in production. 
+
+ 
+
+2️⃣ Git Architecture (Understand This First) 
+
+Git has 3 layers: 
+
+Working Directory – where you edit files 
+
+Staging Area – files prepared for commit 
+
+Local Repository – committed history 
+
+Remote Repository (GitHub / Azure Repos) 
+
+ 
+
+3️⃣ Initial Git Setup (One-Time) 
+
+git --version 
+git config --global user.name "Your Name" 
+git config --global user.email "you@email.com" 
+ 
+
+Check: 
+
+git config --list 
+ 
+
+ 
+
+4️⃣ git clone – Copy Remote Repo 
+
+git clone https://github.com/username/terraform-azure.git 
+cd terraform-azure 
+ 
+
+What happens: 
+
+Creates local copy 
+
+Connects to remote origin 
+
+Downloads full history 
+
+Check: 
+
+git remote -v 
+ 
+
+ 
+
+5️⃣ Working with Files (Real Flow) 
+
+Create Terraform files 
+
+touch main.tf variables.tf outputs.tf 
+ 
+
+Check status: 
+
+git status 
+ 
+
+ 
+
+6️⃣ git add – Stage Changes 
+
+Add specific file 
+
+git add main.tf 
+ 
+
+Add all files 
+
+git add . 
+ 
+
+👉 Staging = selecting what goes into next commit 
+
+ 
+
+ 
+
+7️⃣ git commit – Save a Snapshot 
+
+git commit -m "Initial Azure Terraform setup" 
+ 
+
+Good commit message format: 
+
+type: short description 
+ 
+Example: 
+feat: add VNet and subnet resources 
+fix: correct NSG rule priority 
+ 
+
+Check history: 
+
+git log 
+git log --oneline 
+ 
+
+ 
+
+8️⃣ git push – Upload to Remote Repo 
+
+git push origin main 
+ 
+
+First time: 
+
+git push -u origin main 
+ 
+
+👉 Makes your code available to: 
+
+Team members 
+
+CI/CD pipelines 
+
+ 
+
+ 
+
+9️⃣ Branching Basics (Must Know) 
+
+Why branches? 
+
+Work safely 
+
+Avoid breaking main code 
+
+Create branch 
+
+git checkout -b feature-vnet 
+ 
+
+Switch branch 
+
+git checkout main 
+ 
+
+Merge branch 
+
+git merge feature-vnet 
+ 
+
+ 
+
+🔟 Common Git Commands (Daily Use) 
+
+git status 
+git diff 
+git branch 
+git pull 
+git fetch 
+ 
+
+ 
+
+1️⃣1️⃣ Undo & Fix Mistakes (Very Important) 
+
+Undo staging 
+
+git reset main.tf 
+ 
+
+Undo last commit (keep changes) 
+
+git reset --soft HEAD~1 
+ 
+
+Discard local changes 
+
+git checkout -- main.tf 
+ 
+
+ 
+
+1️⃣2️⃣ .gitignore (Terraform CRITICAL) 
+
+Create .gitignore: 
+
+nano .gitignore 
+ 
+
+Add: 
+
+.terraform/ 
+terraform.tfstate 
+terraform.tfstate.backup 
+*.tfvars 
+ 
+
+👉 Never commit state or secrets 
+
+ 
+
+ 
+
+1️⃣3️⃣ Terraform + Azure Repo Structure (Best Practice) 
+
+Image
+Image
+Recommended Structure 
+
+terraform-azure/ 
+│ 
+├── modules/ 
+│   ├── network/ 
+│   │   ├── main.tf 
+│   │   ├── variables.tf 
+│   │   └── outputs.tf 
+│   │ 
+│   └── vm/ 
+│       ├── main.tf 
+│       ├── variables.tf 
+│       └── outputs.tf 
+│ 
+├── environments/ 
+│   ├── dev/ 
+│   │   ├── main.tf 
+│   │   ├── terraform.tfvars 
+│   │   └── backend.tf 
+│   │ 
+│   ├── test/ 
+│   └── prod/ 
+│ 
+├── .gitignore 
+├── README.md 
+ 
+
+ 
+
+1️⃣4️⃣ Git + Terraform Real Workflow 
+
+git checkout -b feature-add-vm 
+nano main.tf 
+terraform fmt 
+terraform plan 
+git add . 
+git commit -m "feat: add Linux VM" 
+git push origin feature-add-vm 
+ 
+
+➡ Create Pull Request 
+
+➡ Review 
+
+➡ Merge to main 
+
+ 
+
+ 
+
+1️⃣5️⃣ Interview-Level Concepts 
+
+Be ready to answer: 
+
+Why not store terraform.tfstate in Git? 
+
+Difference between git pull & git fetch 
+
+What is a PR? 
+
+How Git helps IaC? 
+
+ 
+
+ 
+
+📅 5-Day Git Practice Plan 
+
+Day 
+
+Focus 
+
+1 
+
+clone, status 
+
+2 
+
+add, commit 
+
+3 
+
+push, pull 
+
+4 
+
+branches 
+
+5 
+
+full Terraform workflow 
+
+ 
+
+ 
+
+🎯 You Are Ready When: 
+
+✅ You can clone & push confidently 
+
+✅ You understand staging vs commit 
+
+✅ You use branches properly 
+
+✅ Your repo structure is clean 
+
+ 
+
+ 
+
+ 
