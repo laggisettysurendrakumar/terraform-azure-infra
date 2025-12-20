@@ -4,20 +4,35 @@ Infrastructure as Code (IaC) using Terraform to provision and manage Azure cloud
 Repo info:
 ==========
 terraform-azure-study/
+
 │
-├── notes/
+
+├── notes/ 
+
 │   ├── terraform-basics.md
+
 │   ├── azure-provider.md
+
 │   ├── state-backend.md
+
 │
+
 ├── labs/
+
 │   ├── 01-resource-group/
+
 │   ├── 02-storage-account/
+
 │   ├── 03-vnet/
+
 │   └── 04-linux-vm/
+
 │
+
 ├── examples/
+
 │   └── snippets.tf
+
 │
 ├── README.md
 
