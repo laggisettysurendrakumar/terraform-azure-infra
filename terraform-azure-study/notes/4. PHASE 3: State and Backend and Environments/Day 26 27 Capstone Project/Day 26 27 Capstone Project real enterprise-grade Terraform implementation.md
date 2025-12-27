@@ -55,7 +55,7 @@ All environments:
 
 ![Image](https://miro.medium.com/0%2AD6TQgxD0xMTE-G4t.png)
 
-![Image](https://blog.rufer.be/wp-content/uploads/2023/11/az-devops-environments.png)
+![Image](https://camo.githubusercontent.com/0ae42251309125450183fb1033d06d54e6c70ab1a05f88f2727fc8fe0dd059f6/68747470733a2f2f626c6f672e72756665722e62652f77702d636f6e74656e742f75706c6f6164732f323032332f31312f617a2d6465766f70732d656e7669726f6e6d656e74732e706e67)
 
 ![Image](https://miro.medium.com/1%2Aq2enyfjQ5Y_qYER6hhA6IA.png)
 
