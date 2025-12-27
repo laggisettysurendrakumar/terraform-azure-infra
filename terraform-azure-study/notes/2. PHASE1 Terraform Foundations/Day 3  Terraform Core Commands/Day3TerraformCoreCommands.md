@@ -1,509 +1,406 @@
-Day 3 – Terraform Core Commands & Provider Versioning 
+# **Day 3 – Terraform Core Commands & Provider Versioning**
 
-🎯 Goal of Day-3 
+🎯 **Goal of Day-3**
+By the end of this day, you will clearly understand:
 
-By the end of this day, you will clearly understand: 
+* What each core Terraform command does internally
+* How Terraform plans & applies changes
+* How providers work
+* Why provider versioning is critical in real projects
 
-What each core Terraform command does internally 
+---
 
-How Terraform plans & applies changes 
+## **1️⃣ terraform init**
 
-How providers work 
+### 📌 What is `terraform init`?
 
-Why provider versioning is critical in real projects 
+`terraform init` **initializes a Terraform working directory**.
 
- 
+It prepares Terraform to work with your configuration.
 
- 
+---
 
-1️⃣ terraform init 
+### 🔍 What Happens Internally?
 
- 
+When you run:
 
-📌 What is terraform init? 
+```bash
+terraform init
+```
 
-terraform init initializes a Terraform working directory. 
+Terraform does the following:
 
-It prepares Terraform to work with your configuration. 
+1. Downloads required **providers**
+2. Initializes the **backend** (local or remote)
+3. Creates the `.terraform/` directory
+4. Generates `.terraform.lock.hcl`
 
- 
+---
 
- 
+### 🧠 Key Files Created
 
-🔍 What Happens Internally? 
+```text
+.terraform/
+└── providers/
+.terraform.lock.hcl
+```
 
-When you run: 
+* `.terraform/` → Provider binaries
+* `.terraform.lock.hcl` → Locked provider versions
 
-terraform init  
+---
 
-Terraform does the following: 
+### 🧪 Example
 
-Downloads required providers 
+```hcl
+provider "azurerm" {
+  features {}
+}
+```
 
-Initializes the backend (local or remote) 
+Run:
 
-Creates the .terraform/ directory 
+```bash
+terraform init
+```
 
-Generates .terraform.lock.hcl 
+✅ AzureRM provider is downloaded.
 
- 
+---
 
- 
+### ⚠️ Important Notes
 
-🧠 Key Files Created 
+* Must be run **first**
+* Re-run if:
 
-.terraform/ 
+  * Provider changes
+  * Backend changes
+  * Terraform version changes
 
-└── providers/ 
+---
 
-.terraform.lock.hcl 
+## **2️⃣ terraform plan**
 
- 
+### 📌 What is `terraform plan`?
 
-.terraform/ → Provider binaries  
+`terraform plan` **creates an execution plan** without making changes.
 
-.terraform.lock.hcl → Locked provider versions 
+It answers:
 
- 
+> “What will Terraform do if I apply this?”
 
-🧪 Example 
+---
 
- 
+### 🔍 What Happens Internally?
 
-provider "azurerm" { features {} }  
+Terraform:
 
- 
+1. Reads your `.tf` files
+2. Reads the **state file**
+3. Compares:
 
-Run: 
+   * Desired state (code)
+   * Current state (real infrastructure)
+4. Shows the difference
 
-terraform init  
+---
 
-✅ AzureRM provider is downloaded. 
+### 🧪 Example
 
- 
+```bash
+terraform plan
+```
 
- 
+Output:
 
-⚠️ Important Notes 
+```text
++ create azurerm_resource_group.rg
+```
 
-Must be run first 
+Symbols:
 
-Re-run if: 
+* `+` → Create
+* `~` → Modify
+* `-` → Destroy
 
-Provider changes 
+---
 
-Backend changes 
+### ✅ Why `plan` is Critical
 
-Terraform version changes 
+* Prevents surprises
+* Required in **CI/CD pipelines**
+* Safe preview before apply
 
- 
+---
 
- 
+### 🧠 Pro Tip
 
-2️⃣ terraform plan 
+```bash
+terraform plan -out=tfplan
+```
 
- 
+Then:
 
-📌 What is terraform plan? 
+```bash
+terraform apply tfplan
+```
 
-terraform plan creates an execution plan without making changes. 
+➡️ Ensures **only reviewed changes** are applied.
 
-It answers: 
+---
 
-“What will Terraform do if I apply this?” 
+## **3️⃣ terraform apply**
 
- 
+### 📌 What is `terraform apply`?
 
-🔍 What Happens Internally? 
+`terraform apply` **executes the plan** and creates/modifies infrastructure.
 
-Terraform: 
+---
 
-Reads your .tf files 
+### 🔍 What Happens Internally?
 
-Reads the state file 
+1. Terraform creates a **dependency graph**
+2. Resources are created in correct order
+3. State file is updated
+4. Output is displayed
 
-Compares: 
+---
 
-Desired state (code) 
+### 🧪 Example
 
-Current state (real infrastructure) 
+```bash
+terraform apply
+```
 
-Shows the difference 
+Terraform asks:
 
- 
+```text
+Do you want to perform these actions?
+Type 'yes'
+```
 
- 
+➡️ Type `yes` → Infrastructure created 🎉
 
-🧪 Example 
+---
 
-terraform plan  
+### ⚠️ Important Rules
 
-Output: 
+* Always run `plan` before `apply`
+* Never apply unreviewed changes in production
 
-+ create azurerm_resource_group.rg  
+---
 
-Symbols: 
+### 🔐 CI/CD Mode
 
-+ → Create 
+```bash
+terraform apply -auto-approve
+```
 
-~ → Modify 
+⚠️ Use only in pipelines with approvals.
 
-- → Destroy 
+---
 
- 
+## **4️⃣ terraform destroy**
 
- 
+### 📌 What is `terraform destroy`?
 
-✅ Why plan is Critical 
+`terraform destroy` **deletes all resources managed by Terraform**.
 
-Prevents surprises 
+---
 
-Required in CI/CD pipelines 
+### 🔍 What Happens Internally?
 
-Safe preview before apply 
+* Terraform reads state
+* Determines all managed resources
+* Deletes them safely in reverse order
 
- 
+---
 
- 
+### 🧪 Example
 
-🧠 Pro Tip 
+```bash
+terraform destroy
+```
 
- 
+Confirmation required:
 
-terraform plan -out=tfplan  
+```text
+Type 'yes'
+```
 
-Then: 
+---
 
-terraform apply tfplan  
+### ⚠️ Danger Zone 🚨
 
-➡️ Ensures only reviewed changes are applied. 
+* Deletes **everything**
+* Never run blindly in production
 
- 
+---
 
- 
+### 🧠 Best Practice
 
-3️⃣ terraform apply 
+```bash
+terraform plan -destroy
+```
 
- 
+➡️ Preview destruction before executing.
 
-📌 What is terraform apply? 
+---
 
-terraform apply executes the plan and creates/modifies infrastructure. 
+## **5️⃣ Terraform Provider (Deep Dive)**
 
- 
+### 📌 What is a Provider?
 
-🔍 What Happens Internally? 
+A **provider** is a plugin that allows Terraform to interact with APIs.
 
-Terraform creates a dependency graph 
+Examples:
 
-Resources are created in correct order 
+* Azure → `azurerm`
+* AWS → `aws`
 
-State file is updated 
+---
 
-Output is displayed 
+### 🧩 Provider Architecture
 
- 
+```text
+Terraform Core → Provider → Cloud API
+```
 
-🧪 Example 
+---
 
-terraform apply  
+### 🧪 Example Provider Block
 
- 
+```hcl
+provider "azurerm" {
+  features {}
+}
+```
 
-Terraform asks: 
+---
 
-Do you want to perform these actions? Type 'yes'  
+### 🔹 Multiple Providers Example
 
-➡️ Type yes → Infrastructure created 🎉 
+```hcl
+provider "azurerm" {
+  features {}
+}
 
- 
+provider "aws" {
+  region = "us-east-1"
+}
+```
 
- 
+➡️ Same Terraform codebase, multi-cloud power 💪
 
-⚠️ Important Rules 
+---
 
-Always run plan before apply 
+## **6️⃣ Provider Versioning (VERY IMPORTANT ⭐)**
 
-Never apply unreviewed changes in production 
+### 📌 Why Versioning Matters
 
- 
+Providers change:
 
- 
+* New features
+* Bug fixes
+* Breaking changes
 
-🔐 CI/CD Mode 
+Without versioning:
 
-terraform apply -auto-approve  
+❌ Builds break
 
-⚠️ Use only in pipelines with approvals. 
+❌ CI/CD failures
 
- 
+❌ Unexpected behavior
 
- 
+---
 
-4️⃣ terraform destroy 
+### 🧪 Version Constraint Example
 
-📌 What is terraform destroy? 
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.100"
+    }
+  }
+}
+```
 
-terraform destroy deletes all resources managed by Terraform. 
+---
 
- 
+### 🧠 Version Symbols Explained
 
-🔍 What Happens Internally? 
+| Symbol      | Meaning             |
+| ----------- | ------------------- |
+| `= 3.100.0` | Exact version       |
+| `>= 3.0`    | Minimum version     |
+| `~> 3.100`  | Allow patch updates |
+| `< 4.0`     | Less than version   |
 
-Terraform reads state 
+✅ **Recommended:** `~>` (pessimistic constraint)
 
-Determines all managed resources 
+---
 
-Deletes them safely in reverse order 
+### 🔒 Provider Lock File
 
- 
+`.terraform.lock.hcl` ensures:
 
-🧪 Example 
+* Same provider version across team
+* Consistent CI/CD behavior
 
-terraform destroy  
+⚠️ **Commit this file to GitHub**
 
-Confirmation required: 
+---
 
-Type 'yes'  
+## **7️⃣ End-to-End Example (Mental Model)**
 
- 
+### 🎯 Goal: Create & Delete Resource Group
 
-⚠️ Danger Zone 🚨 
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.100"
+    }
+  }
+}
 
-Deletes everything 
+provider "azurerm" {
+  features {}
+}
 
-Never run blindly in production 
+resource "azurerm_resource_group" "demo" {
+  name     = "rg-day3-demo"
+  location = "Central India"
+}
+```
 
- 
+### Commands Flow
 
- 
+```bash
+terraform init
+terraform plan
+terraform apply
+terraform destroy
+```
 
-🧠 Best Practice 
+---
 
-terraform plan -destroy  
+## **Day-3 Summary**
 
-➡️ Preview destruction before executing. 
 
- 
+✔ `init` → setup environment
 
- 
+✔ `plan` → preview changes
 
-5️⃣ Terraform Provider (Deep Dive) 
+✔ `apply` → create/update infra
 
- 
+✔ `destroy` → delete infra
 
-📌 What is a Provider? 
+✔ Providers connect Terraform to cloud
 
-A provider is a plugin that allows Terraform to interact with APIs. 
+✔ Versioning prevents breaking changes
 
-Examples: 
-
-Azure → azurerm 
-
-AWS → aws 
-
- 
-
- 
-
-🧩 Provider Architecture 
-
-Terraform Core → Provider → Cloud API  
-
- 
-
-🧪 Example Provider Block 
-
- 
-
-provider "azurerm"  
-
-{  
-
-  features {}  
-
-}  
-
- 
-
-🔹 Multiple Providers Example 
-
- 
-
-provider "azurerm"  
-
-{  
-
-  features {} 
-
-}  
-
- 
-
-provider "aws"  
-
-{  
-
-  region = "us-east-1" 
-
-} 
-
- 
-
-➡️ Same Terraform codebase, multi-cloud power 💪 
-
- 
-
- 
-
-6️⃣ Provider Versioning (VERY IMPORTANT ⭐) 
-
-📌 Why Versioning Matters 
-
-Providers change: 
-
-New features 
-
-Bug fixes 
-
-Breaking changes 
-
-Without versioning: 
-
-❌ Builds break 
-
-❌ CI/CD failures 
-
-❌ Unexpected behavior 
-
- 
-
- 
-
-🧪 Version Constraint Example 
-
- 
-
-terraform { 
-
-  required_providers { 
-
-    azurerm = { 
-
-      source  = "hashicorp/azurerm" 
-
-      version = "~> 3.100" 
-
-    } 
-
-  } 
-
-} 
-
- 
-
- 
-
-🧠 Version Symbols Explained 
-
-Symbol 
-
-Meaning 
-
-= 3.100.0 
-
-Exact version 
-
->= 3.0 
-
-Minimum version 
-
-~> 3.100 
-
-Allow patch updates 
-
-< 4.0 
-
-Less than version 
-
- 
-
-✅ Recommended: ~> (pessimistic constraint) 
-
- 
-
- 
-
-🔒 Provider Lock File 
-
-.terraform.lock.hcl ensures: 
-
-Same provider version across team 
-
-Consistent CI/CD behavior 
-
-⚠️ Commit this file to GitHub 
-
- 
-
- 
-
-7️⃣ End-to-End Example (Mental Model) 
-
-🎯 Goal: Create & Delete Resource Group 
-
- 
-
-terraform { 
-
-  required_providers { 
-
-    azurerm = { 
-
-      source  = "hashicorp/azurerm" 
-
-      version = "~> 3.100" 
-
-    } 
-
-  } 
-
-} 
-
-  
-
-provider "azurerm" { 
-
-  features {} 
-
-} 
-
-  
-
-resource "azurerm_resource_group" "demo" { 
-
-  name     = "rg-day3-demo" 
-
-  location = "Central India" 
-
-} 
-
- 
-
-Day-3 Summary (Revision Ready) 
-
-✔ init → setup environment 
-
-✔ plan → preview changes 
-
-✔ apply → create/update infra 
-
-✔ destroy → delete infra 
-
-✔ Providers connect Terraform to cloud 
-
-✔ Versioning prevents breaking changes 
-
- 
-
- 
+---
