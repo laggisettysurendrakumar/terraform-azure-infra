@@ -1,515 +1,393 @@
-Day 4 – Terraform Syntax (HCL) 
+# **Day 4 – Terraform Syntax (HCL)**
 
-🎯 Goal of Day-4 
+🎯 **Goal of Day-4**
+By the end of this day, you will:
 
-By the end of this day, you will: 
+* Understand **HCL syntax**
+* Confidently write **resources**
+* Use **variables** correctly
+* Expose values using **outputs**
+* Follow **standard `.tf` file structure**
 
-Understand HCL syntax 
+---
 
-Confidently write resources 
+## **1️⃣ What is HCL? (Terraform Language)**
 
-Use variables correctly 
+### 📌 Definition
 
-Expose values using outputs 
+Terraform uses **HCL (HashiCorp Configuration Language)**.
 
-Follow standard .tf file structure 
+Key properties:
 
- 
+* Declarative
+* Human-readable
+* Designed for infrastructure
 
- 
+👉 You describe **WHAT** you want, not **HOW** to do it.
 
-1️⃣ What is HCL? (Terraform Language) 
+---
 
-📌 Definition 
+### 🔹 Basic HCL Syntax
 
-Terraform uses HCL (HashiCorp Configuration Language). 
+```hcl
+block_type "label1" "label2" {
+  argument = value
+}
+```
 
-Key properties: 
+Example:
 
-Declarative 
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-demo"
+  location = "Central India"
+}
+```
 
-Human-readable 
+---
 
-Designed for infrastructure 
+## **2️⃣ Resources (Core Building Block)** ⭐
 
-👉 You describe WHAT you want, not HOW to do it. 
+### 📌 What is a Resource?
 
- 
+A **resource** represents **one real infrastructure object**.
 
- 
+Examples:
 
-🔹 Basic HCL Syntax 
+* Resource Group
+* Virtual Network
+* VM
+* Storage Account
 
-block_type "label1" "label2" { 
+---
 
-  argument = value 
+### 🔹 Resource Syntax
 
-} 
+```hcl
+resource "<PROVIDER>_<TYPE>" "<NAME>" {
+  argument = value
+}
+```
 
- 
+---
 
-Example: 
+### 🧪 Example: Azure Resource Group
 
-resource "azurerm_resource_group" "rg" { 
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-day4"
+  location = "Central India"
+}
+```
 
-  name     = "rg-demo" 
+* `azurerm_resource_group` → resource type
+* `rg` → logical name (used internally by Terraform)
 
-  location = "Central India" 
+---
 
-} 
+### 🔗 Referencing Resources
 
- 
+```hcl
+resource "azurerm_virtual_network" "vnet" {
+  name                = "vnet-demo"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  address_space       = ["10.0.0.0/16"]
+}
+```
 
- 
+👉 Terraform automatically understands **dependencies**.
 
-2️⃣ Resources (Core Building Block) ⭐ 
+---
 
-📌 What is a Resource? 
+### 🧠 Key Points
 
-A resource represents one real infrastructure object. 
 
-Examples: 
+✔ One resource = one infra object
 
-Resource Group 
+✔ Terraform builds dependency graph automatically
 
-Virtual Network 
+✔ Logical name ≠ Azure name
 
-VM 
+---
 
-Storage Account 
+## **3️⃣ Variables (Make Code Reusable)** ⭐⭐
 
- 
+### 📌 Why Variables?
 
- 
+Without variables:
 
-🔹 Resource Syntax 
+* Hardcoded values
+* Difficult to reuse
+* Not environment-friendly
 
- 
+Variables make Terraform:
 
-resource "<PROVIDER>_<TYPE>" "<NAME>" { 
+✅ Reusable
 
-  argument = value 
+✅ Flexible
 
-} 
+✅ Environment-aware
 
- 
+---
 
- 
+### 🔹 Declare Variable (`variables.tf`)
 
-🧪 Example: Azure Resource Group 
+```hcl
+variable "location" {
+  description = "Azure region"
+  type        = string
+  default     = "Central India"
+}
+```
 
- 
+---
 
-resource "azurerm_resource_group" "rg" { 
+### 🔹 Use Variable in Resource
 
-  name     = "rg-day4" 
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-day4"
+  location = var.location
+}
+```
 
-  location = "Central India" 
+---
 
-} 
+### 🔹 Variable Without Default (Mandatory)
 
- 
+```hcl
+variable "rg_name" {
+  description = "Resource group name"
+  type        = string
+}
+```
 
- 
+Terraform will ask for input at runtime.
 
-azurerm_resource_group → resource type 
+---
 
-rg → logical name (used internally by Terraform) 
+### 🔹 Variable Types
 
- 
+```hcl
+variable "vm_count" {
+  type    = number
+  default = 2
+}
 
- 
+variable "tags" {
+  type = map(string)
+  default = {
+    env  = "dev"
+    team = "infra"
+  }
+}
+```
 
-🔗 Referencing Resources 
+---
 
-resource "azurerm_virtual_network" "vnet" { 
+### 🔹 Provide Values (terraform.tfvars)
 
-  name                = "vnet-demo" 
+```hcl
+rg_name  = "rg-dev"
+location = "East US"
+```
 
-  location            = azurerm_resource_group.rg.location 
+---
 
-  resource_group_name = azurerm_resource_group.rg.name 
+### 🧠 Best Practice
 
-  address_space       = ["10.0.0.0/16"] 
+* Never hardcode environment values
+* Use `.tfvars` for Dev/Test/Prod
 
-} 
+---
 
- 
+## **4️⃣ Outputs (Expose Useful Info)** ⭐⭐
 
-👉 Terraform automatically understands dependencies. 
+### 📌 What are Outputs?
 
- 
+Outputs:
 
- 
+* Display values after `apply`
+* Share data between modules
+* Help in debugging
 
-🧠 Key Points 
+---
 
-✔ One resource = one infra object 
+### 🔹 Output Syntax
 
-✔ Terraform builds dependency graph automatically 
+```hcl
+output "rg_name" {
+  value = azurerm_resource_group.rg.name
+}
+```
 
-✔ Logical name ≠ Azure name 
+---
 
- 
+### 🧪 Example Output
 
- 
+After `terraform apply`:
 
-3️⃣ Variables (Make Code Reusable) ⭐⭐ 
+```text
+rg_name = "rg-day4"
+```
 
-📌 Why Variables? 
+---
 
-Without variables: 
+### 🔐 Sensitive Output
 
-Hardcoded values 
+```hcl
+output "client_secret" {
+  value     = var.client_secret
+  sensitive = true
+}
+```
 
-Difficult to reuse 
+➡️ Value hidden in CLI output.
 
-Not environment-friendly 
+---
 
-Variables make Terraform: 
+### 🧠 Use Cases
 
-✅ Reusable 
 
-✅ Flexible 
+✔ Display IP addresses
 
-✅ Environment-aware 
+✔ Show resource IDs
 
- 
+✔ Pass values to modules
 
- 
+---
 
-🔹 Declare Variable (variables.tf) 
+## **5️⃣ .tf File Structure (Industry Standard)** ⭐⭐⭐
 
-variable "location" { 
+### 📌 Recommended Structure
 
-  description = "Azure region" 
+```text
+terraform-project/
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── terraform.tfvars
+├── provider.tf
+```
 
-  type        = string 
+---
 
-  default     = "Central India" 
+### 🔹 File Responsibilities
 
-} 
+| File               | Purpose               |
+| ------------------ | --------------------- |
+| `main.tf`          | Resources             |
+| `variables.tf`     | Variable declarations |
+| `outputs.tf`       | Output values         |
+| `terraform.tfvars` | Variable values       |
+| `provider.tf`      | Provider config       |
 
- 
+👉 Terraform loads **all `.tf` files automatically**.
 
- 
+---
 
-🔹 Use Variable in Resource 
+### 🧠 Important Rule
 
-resource "azurerm_resource_group" "rg" { 
+Terraform **does NOT care about file names**, only:
 
-  name     = "rg-day4" 
+* `.tf` extension
+* Valid syntax
 
-  location = var.location 
+File separation = **human readability**.
 
-} 
+---
 
- 
+## **6️⃣ End-to-End Example (Day-4)**
 
- 
+### `provider.tf`
 
-🔹 Variable Without Default (Mandatory) 
+```hcl
+provider "azurerm" {
+  features {}
+}
+```
 
-variable "rg_name" { 
+---
 
-  description = "Resource group name" 
+### `variables.tf`
 
-  type        = string 
+```hcl
+variable "rg_name" {
+  type = string
+}
 
-} 
+variable "location" {
+  type    = string
+  default = "Central India"
+}
+```
 
- 
+---
 
-Terraform will ask for input at runtime. 
+### `main.tf`
 
- 
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = var.rg_name
+  location = var.location
+}
+```
 
- 
+---
 
-🔹 Variable Types 
+### `outputs.tf`
 
- 
+```hcl
+output "resource_group_name" {
+  value = azurerm_resource_group.rg.name
+}
+```
 
-variable "vm_count" { 
+---
 
-  type    = number 
+### `terraform.tfvars`
 
-  default = 2 
+```hcl
+rg_name = "rg-day4-demo"
+```
 
-} 
+---
 
-  
+### Commands
 
-variable "tags" { 
+```bash
+terraform init
+terraform plan
+terraform apply
+```
 
-  type = map(string) 
+---
 
-  default = { 
+## **7️⃣ Common Mistakes (Exam + Real World)** ⚠️
 
-    env  = "dev" 
 
-    team = "infra" 
+❌ Hardcoding values
 
-  } 
+❌ Secrets in `.tf` files
 
-} 
+❌ No variable descriptions
 
- 
+❌ No outputs for important values
 
- 
+---
 
-🔹 Provide Values (terraform.tfvars) 
+## **Day-4 Summary (Revision Ready)**
 
-rg_name = "rg-dev" location = "East US"  
 
- 
+✔ Resources create infrastructure
 
-🧠 Best Practice 
+✔ Variables make code reusable
 
-Never hardcode environment values 
+✔ Outputs expose values
 
-Use .tfvars for Dev/Test/Prod 
+✔ `.tf` files are logically separated
 
- 
+✔ Terraform auto-loads all `.tf` files
 
- 
-
-4️⃣ Outputs (Expose Useful Info) ⭐⭐ 
-
-📌 What are Outputs? 
-
-Outputs: 
-
-Display values after apply 
-
-Share data between modules 
-
-Help in debugging 
-
- 
-
- 
-
-🔹 Output Syntax 
-
-output "rg_name" { 
-
-  value = azurerm_resource_group.rg.name 
-
-} 
-
- 
-
-🧪 Example Output 
-
-After terraform apply: 
-
-rg_name = "rg-day4"  
-
- 
-
-🔐 Sensitive Output 
-
- 
-
-output "client_secret" { 
-
-  value     = var.client_secret 
-
-  sensitive = true 
-
-} 
-
- 
-
-➡️ Value hidden in CLI output. 
-
- 
-
- 
-
-🧠 Use Cases 
-
-✔ Display IP addresses 
-
-✔ Show resource IDs 
-
-✔ Pass values to modules 
-
- 
-
- 
-
-5️⃣ .tf File Structure (Industry Standard) ⭐⭐⭐ 
-
-📌 Recommended Structure 
-
- 
-
-terraform-project/ 
-
-├── main.tf 
-
-├── variables.tf 
-
-├── outputs.tf 
-
-├── terraform.tfvars 
-
-├── provider.tf 
-
- 
-
-🔹 File Responsibilities 
-
-File 
-
-Purpose 
-
-main.tf 
-
-Resources 
-
-variables.tf 
-
-Variable declarations 
-
-outputs.tf 
-
-Output values 
-
-terraform.tfvars 
-
-Variable values 
-
-provider.tf 
-
-Provider config 
-
-👉 Terraform loads all .tf files automatically. 
-
- 
-
- 
-
-🧠 Important Rule 
-
-Terraform does NOT care about file names, only: 
-
-.tf extension 
-
-Valid syntax 
-
-File separation = human readability. 
-
- 
-
- 
-
-6️⃣ End-to-End Example (Day-4) 
-
-provider.tf 
-
-provider "azurerm" { 
-
-  features {} 
-
-} 
-
- 
-
- 
-
-variables.tf 
-
-variable "rg_name" { 
-
-  type = string 
-
-} 
-
-  
-
-variable "location" { 
-
-  type    = string 
-
-  default = "Central India" 
-
-} 
-
- 
-
- 
-
-main.tf 
-
-resource "azurerm_resource_group" "rg" { 
-
-  name     = var.rg_name 
-
-  location = var.location 
-
-} 
-
- 
-
-outputs.tf 
-
-output "resource_group_name" { 
-
-  value = azurerm_resource_group.rg.name 
-
-} 
-
- 
-
- 
-
-terraform.tfvars 
-
-rg_name = "rg-day4-demo"  
-
- 
-
-Commands 
-
-terraform init 
-
-terraform plan 
-
-terraform apply 
-
- 
-
- 
-
-7️⃣ Common Mistakes (Exam + Real World) ⚠️ 
-
-❌ Hardcoding values 
-
-❌ Secrets in .tf files 
-
-❌ No variable descriptions 
-
-❌ No outputs for important values 
-
- 
-
- 
-
-Day-4 Summary (Revision Ready) 
-
-✔ Resources create infrastructure 
-
-✔ Variables make code reusable 
-
-✔ Outputs expose values 
-
-✔ .tf files are logically separated 
-
-✔ Terraform auto-loads all .tf files 
-
- 
-
- 
+---
