@@ -1,439 +1,332 @@
-Day 7 – Review + Practice 
+# **Day 7 – Review + Practice**
 
-🎯 Goal of Day-7 
+🎯 **Goal of Day-7**
 
-By the end of this day, you will: 
+By the end of this day, you will:
 
-Rebuild infrastructure from scratch without looking 
+* Rebuild infrastructure **from scratch without looking**
+* Learn how to **identify & fix common Terraform errors**
+* Be **interview-ready** for Terraform + Azure basics
 
-Learn how to identify & fix common Terraform errors 
+---
 
-Be interview-ready for Terraform + Azure basics 
+## **1️⃣ Rebuild Infrastructure from Scratch (Hands-on Lab)** ⭐⭐⭐
 
- 
+### 📌 Objective
 
- 
+Recreate the following using Terraform:
 
-1️⃣ Rebuild Infrastructure from Scratch (Hands-on Lab) ⭐⭐⭐ 
+* Azure Resource Group
+* Azure Storage Account
+* Proper provider versioning
+* Clean `.tf` structure
 
- 
+---
 
-📌 Objective 
+### 🧠 Rules for Practice
 
-Recreate the following using Terraform: 
+✔ Do NOT copy from previous days
 
-Azure Resource Group 
+✔ Write everything manually
 
-Azure Storage Account 
+✔ Use variables
 
-Proper provider versioning 
+✔ Use outputs
 
-Clean .tf structure 
+✔ Run full Terraform lifecycle
 
- 
 
- 
+---
 
-🧠 Rules for Practice 
+### 📁 Expected Folder Structure
 
-✔ Do NOT copy from previous days 
+```text
+day-07-practice/
+├── provider.tf
+├── main.tf
+├── variables.tf
+├── outputs.tf
+├── terraform.tfvars
+```
 
-✔ Write everything manually 
+---
 
-✔ Use variables 
+### 🔹 Step 1: Provider Configuration (`provider.tf`)
 
-✔ Use outputs 
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.100"
+    }
+  }
+}
 
-✔ Run full Terraform lifecycle 
+provider "azurerm" {
+  features {}
+}
+```
 
- 
+---
 
- 
+### 🔹 Step 2: Variables (`variables.tf`)
 
-📁 Expected Folder Structure 
+```hcl
+variable "rg_name" {
+  type        = string
+  description = "Resource group name"
+}
 
- 
+variable "location" {
+  type        = string
+  default     = "Central India"
+}
 
-day-07-practice/ 
+variable "storage_name" {
+  type        = string
+  description = "Globally unique storage account name"
+}
+```
 
-├── provider.tf 
+---
 
-├── main.tf 
+### 🔹 Step 3: Resources (`main.tf`)
 
-├── variables.tf 
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = var.rg_name
+  location = var.location
+}
 
-├── outputs.tf 
+resource "azurerm_storage_account" "sa" {
+  name                     = var.storage_name
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+```
 
-├── terraform.tfvars 
+---
 
- 
+### 🔹 Step 4: Outputs (`outputs.tf`)
 
- 
+```hcl
+output "resource_group_name" {
+  value = azurerm_resource_group.rg.name
+}
 
- 
+output "storage_account_name" {
+  value = azurerm_storage_account.sa.name
+}
+```
 
-🔹 Step 1: Provider Configuration (provider.tf) 
+---
 
- 
+### 🔹 Step 5: Variable Values (`terraform.tfvars`)
 
-terraform { 
+```hcl
+rg_name      = "rg-day7-practice"
+storage_name = "day7storagedemo01"
+```
 
-  required_providers { 
+---
 
-    azurerm = { 
+### 🔹 Step 6: Run Terraform Commands
 
-      source  = "hashicorp/azurerm" 
+```bash
+terraform init
+terraform plan
+terraform apply
+```
 
-      version = "~> 3.100" 
+✅ If everything works → you are **production-ready for basics** 🎉
 
-    } 
+---
 
-  } 
+## **2️⃣ Fix Common Terraform Errors (Very Important)** 🚨
 
-} 
+### ❌ Error 1: Provider Not Installed
 
-  
+**Error:**
 
-provider "azurerm" { 
+```text
+Provider registry.terraform.io/hashicorp/azurerm not available
+```
 
-  features {} 
+**Fix:**
 
-} 
+```bash
+terraform init
+```
 
- 
+---
 
- 
+### ❌ Error 2: Storage Account Name Invalid
 
-🔹 Step 2: Variables (variables.tf) 
+**Error:**
 
- 
+```text
+must be between 3 and 24 characters and lowercase
+```
 
-variable "rg_name" { 
+**Fix:**
 
-  type        = string 
+* Use lowercase
+* Add random suffix
+* Remove hyphens
 
-  description = "Resource group name" 
+---
 
-} 
+### ❌ Error 3: Authentication Failed
 
-  
+**Error:**
 
-variable "location" { 
+```text
+Error building ARM Config
+```
 
-  type        = string 
+**Fix Checklist:**
 
-  default     = "Central India" 
+✔ Azure CLI logged in (`az login`)
 
-} 
+✔ Correct subscription set
 
-  
+✔ Service Principal variables exported
 
-variable "storage_name" { 
+---
 
-  type        = string 
+### ❌ Error 4: Resource Already Exists
 
-  description = "Globally unique storage account name" 
+**Error:**
 
-} 
+```text
+Resource already exists
+```
 
- 
+**Reason:**
 
- 
+* Resource created manually or earlier
 
- 
+**Fix Options:**
 
-🔹 Step 3: Resources (main.tf) 
+* Import resource (advanced)
+* Rename resource
+* Delete manually (dev only)
 
- 
+---
 
-resource "azurerm_resource_group" "rg" { 
+### ❌ Error 5: State File Issues
 
-  name     = var.rg_name 
+**Error:**
 
-  location = var.location 
+```text
+State file locked
+```
 
-} 
+**Fix:**
 
-  
+* Wait for lock release
+* Never delete lock blindly (prod)
 
-resource "azurerm_storage_account" "sa" { 
+---
 
-  name                     = var.storage_name 
+## **3️⃣ Terraform Debugging Tips** 🛠
 
-  resource_group_name      = azurerm_resource_group.rg.name 
+### 🔍 Use Detailed Logs
 
-  location                 = azurerm_resource_group.rg.location 
+```bash
+export TF_LOG=TRACE
+terraform plan
+```
 
-  account_tier             = "Standard" 
+---
 
-  account_replication_type = "LRS" 
+### 🔍 Validate Syntax
 
-} 
+```bash
+terraform validate
+```
 
- 
+---
 
- 
+### 🔍 Format Code
 
- 
+```bash
+terraform fmt
+```
 
-🔹 Step 4: Outputs (outputs.tf) 
+---
 
- 
+## **4️⃣ Interview Questions – Terraform Core (Day 1–7)** ⭐⭐⭐
 
-output "resource_group_name" { 
+### 🔹 Basic Questions
 
-  value = azurerm_resource_group.rg.name 
+1. What is Infrastructure as Code?
+2. Why is Terraform preferred over ARM templates?
+3. What is HCL?
+4. What is a provider?
 
-} 
+---
 
-  
+### 🔹 State & Architecture
 
-output "storage_account_name" { 
+5. What is `terraform.tfstate`?
+6. Why is state critical?
+7. What happens if state is deleted?
+8. What is state drift?
 
-  value = azurerm_storage_account.sa.name 
+---
 
-} 
+### 🔹 Commands
 
- 
+9. Difference between `terraform plan` and `terraform apply`?
+10. What does `terraform init` do?
+11. How does Terraform know resource dependency?
 
- 
+---
 
-🔹 Step 5: Variable Values (terraform.tfvars) 
+### 🔹 Azure Specific
 
- 
+12. What is AzureRM provider?
+13. How does Terraform authenticate with Azure?
+14. Why is Storage Account globally unique?
 
-rg_name      = "rg-day7-practice" 
+---
 
-storage_name = "day7storagedemo01" 
+### 🔹 Scenario-Based
 
- 
+15. Two engineers run `terraform apply` simultaneously — what happens?
+16. Someone deletes a resource from Azure Portal — how does Terraform react?
+17. How do you protect secrets in Terraform?
 
- 
+---
 
-🔹 Step 6: Run Terraform Commands 
+## **5️⃣ Self-Evaluation Checklist** ✅
 
-terraform init 
+✔ Can write Terraform code without reference
 
-terraform plan 
+✔ Understand provider & versioning
 
-terraform apply 
+✔ Can debug basic errors
 
- 
+✔ Can explain state clearly
 
-✅ If everything works → you are production-ready for basics 🎉 
+✔ Ready for interviews
 
- 
+---
 
- 
+## **Day-7 Final Summary**
 
-2️⃣ Fix Common Terraform Errors (Very Important) 🚨 
+✔ Rebuilt infra from scratch
 
-❌ Error 1: Provider Not Installed 
+✔ Practiced real-world errors
 
- 
+✔ Understood debugging techniques
 
-Error: 
+✔ Covered interview questions
 
-Provider registry.terraform.io/hashicorp/azurerm not available  
+✔ Solid Terraform foundation achieved
 
-Fix: 
-
-terraform init  
-
- 
-
-❌ Error 2: Storage Account Name Invalid 
-
- 
-
-Error: 
-
-must be between 3 and 24 characters and lowercase  
-
-Fix: 
-
-Use lowercase 
-
-Add random suffix 
-
-Remove hyphens 
-
- 
-
- 
-
-❌ Error 3: Authentication Failed 
-
-Error: 
-
-Error building ARM Config  
-
-Fix Checklist: 
-
-✔ Azure CLI logged in (az login) 
-
-✔ Correct subscription set 
-
-✔ Service Principal variables exported 
-
- 
-
- 
-
-❌ Error 4: Resource Already Exists 
-
-Error: 
-
-Resource already exists  
-
-Reason: 
-
-Resource created manually or earlier 
-
-Fix Options: 
-
-Import resource (advanced) 
-
-Rename resource 
-
-Delete manually (dev only) 
-
- 
-
- 
-
-❌ Error 5: State File Issues 
-
-Error: 
-
-State file locked  
-
-Fix: 
-
-Wait for lock release 
-
-Never delete lock blindly (prod) 
-
- 
-
- 
-
-3️⃣ Terraform Debugging Tips 🛠 
-
- 
-
-🔍 Use Detailed Logs 
-
-export TF_LOG=TRACE terraform plan  
-
- 
-
-🔍 Validate Syntax 
-
-terraform validate  
-
- 
-
-🔍 Format Code 
-
-terraform fmt  
-
- 
-
-4️⃣ Interview Questions – Terraform Core (Day 1–7) ⭐⭐⭐ 
-
-🔹 Basic Questions 
-
-What is Infrastructure as Code? 
-
-Why is Terraform preferred over ARM templates? 
-
-What is HCL? 
-
-What is a provider? 
-
- 
-
- 
-
-🔹 State & Architecture 
-
-What is terraform.tfstate? 
-
-Why is state critical? 
-
-What happens if state is deleted? 
-
-What is state drift? 
-
- 
-
- 
-
-🔹 Commands 
-
-Difference between terraform plan and terraform apply? 
-
-What does terraform init do? 
-
-How does Terraform know resource dependency? 
-
- 
-
- 
-
-🔹 Azure Specific 
-
-What is AzureRM provider? 
-
-How does Terraform authenticate with Azure? 
-
-Why is Storage Account globally unique? 
-
- 
-
- 
-
-🔹 Scenario-Based 
-
-Two engineers run terraform apply simultaneously — what happens? 
-
-Someone deletes a resource from Azure Portal — how does Terraform react? 
-
-How do you protect secrets in Terraform? 
-
- 
-
- 
-
-5️⃣ Self-Evaluation Checklist ✅ 
-
-✔ Can write Terraform code without reference 
-
-✔ Understand provider & versioning 
-
-✔ Can debug basic errors 
-
-✔ Can explain state clearly 
-
-✔ Ready for interviews 
-
- 
-
- 
-
-Day-7 Final Summary 
-
-✔ Rebuilt infra from scratch 
-
-✔ Practiced real-world errors 
-
-✔ Understood debugging techniques 
-
-✔ Covered interview questions 
-
-✔ Solid Terraform foundation achieved 
-
- 
-
- 
+---
