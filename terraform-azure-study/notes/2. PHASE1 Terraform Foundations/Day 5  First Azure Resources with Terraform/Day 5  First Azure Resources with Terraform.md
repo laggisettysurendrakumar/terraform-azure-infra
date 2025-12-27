@@ -294,27 +294,7 @@ Steps:
 
 ---
 
-## **7️⃣ GitHub & OneNote Usage**
-
-### 📘 GitHub
-
-* Use this as `README.md`
-* Keep one folder per day
-* Commit `.terraform.lock.hcl`
-
-### 📝 OneNote
-
-* Section: **Terraform with Azure**
-* Page: **Day-5 – First Azure Resource**
-* Subpages:
-
-  * AzureRM Provider
-  * Resource Group
-  * Storage Account
-
----
-
-## **Day-5 Summary (Revision Ready)**
+## **Day-5 Summary**
 
 
 ✔ AzureRM provider connects Terraform to Azure
