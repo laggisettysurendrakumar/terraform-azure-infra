@@ -1,387 +1,331 @@
-Day 5 – First Azure Resources with Terraform 
+# **Day 5 – First Azure Resources with Terraform**
 
-🎯 Goal of Day-5 
+🎯 **Goal of Day-5**
+By the end of this day, you will:
 
-By the end of this day, you will: 
+* Create your **first real Azure resources** using Terraform
+* Understand **Resource Group** and **Storage Account** deeply
+* Clearly understand how the **AzureRM provider** works
 
-Create your first real Azure resources using Terraform 
+---
 
-Understand Resource Group and Storage Account deeply 
+## **1️⃣ Understand AzureRM Provider (Foundation)** ⭐⭐⭐
 
-Clearly understand how the AzureRM provider works 
+### 📌 What is AzureRM Provider?
 
- 
+The **AzureRM provider** allows Terraform to interact with **Microsoft Azure** APIs.
 
- 
+Terraform itself cannot create Azure resources directly.
+It uses the AzureRM provider as a **bridge**.
 
-1️⃣ Understand AzureRM Provider (Foundation) ⭐⭐⭐ 
+```text
+Terraform Core → AzureRM Provider → Azure Resource Manager (ARM) → Azure
+```
 
- 
+---
 
-📌 What is AzureRM Provider? 
+### 🔹 Why AzureRM Provider is Important
 
-The AzureRM provider allows Terraform to interact with Microsoft Azure APIs. 
+* Translates Terraform code into Azure API calls
+* Handles authentication (Service Principal / CLI)
+* Manages lifecycle of Azure resources
 
-Terraform itself cannot create Azure resources directly. 
+---
 
-It uses the AzureRM provider as a bridge. 
+### 🔹 Provider Configuration (Basic)
 
-Terraform Core → AzureRM Provider → Azure Resource Manager (ARM) → Azure  
+```hcl
+provider "azurerm" {
+  features {}
+}
+```
 
- 
+📌 `features {}` is mandatory (even if empty).
 
-🔹 Why AzureRM Provider is Important 
+---
 
-Translates Terraform code into Azure API calls 
+### 🔐 Authentication Reminder
 
-Handles authentication (Service Principal / CLI) 
+AzureRM provider automatically reads credentials from:
 
-Manages lifecycle of Azure resources 
+* Environment variables (`ARM_CLIENT_ID`, etc.)
+* Azure CLI login
 
- 
+✅ This is why **Day-2 setup was required**.
 
- 
+---
 
-🔹 Provider Configuration (Basic) 
+## **2️⃣ Azure Resource Group (Concept + Practice)** ⭐⭐
 
-provider "azurerm" { 
+### 📌 What is a Resource Group?
 
-  features {} 
+A **Resource Group (RG)** is a **logical container** for Azure resources.
 
-} 
+Examples:
 
- 
+* Storage Accounts
+* Virtual Machines
+* VNets
 
-📌 features {} is mandatory (even if empty). 
+---
 
- 
+### 🧠 Key Rules
 
- 
 
-🔐 Authentication Reminder 
+✔ All Azure resources must belong to a resource group
 
-AzureRM provider automatically reads credentials from: 
+✔ Resource Group defines **location (region)**
 
-Environment variables (ARM_CLIENT_ID, etc.) 
+✔ Deleting RG deletes **everything inside**
 
-Azure CLI login 
 
-✅ This is why Day-2 setup was required. 
+---
 
- 
+### 🔹 Terraform Code: Resource Group
 
- 
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-day5-demo"
+  location = "Central India"
+}
+```
 
-2️⃣ Azure Resource Group (Concept + Practice) ⭐⭐ 
+---
 
- 
+### 🧪 What Terraform Does
 
-📌 What is a Resource Group? 
+* Calls Azure ARM API
+* Creates a resource group
+* Stores its ID in state file
 
-A Resource Group (RG) is a logical container for Azure resources. 
+---
 
-Examples: 
+## **3️⃣ Azure Storage Account (Concept + Practice)** ⭐⭐⭐
 
-Storage Accounts 
+### 📌 What is Azure Storage Account?
 
-Virtual Machines 
+A **Storage Account** provides:
 
-VNets 
+* Blob storage
+* File shares
+* Queues
+* Tables
 
- 
+Used for:
 
- 
+* Terraform remote state
+* App storage
+* Backups
 
-🧠 Key Rules 
+---
 
-✔ All Azure resources must belong to a resource group 
+![Image](https://learn.microsoft.com/en-us/security/zero-trust/media/secure-storage/azure-infra-storage-network-2.svg?utm_source=chatgpt.com)
 
-✔ Resource Group defines location (region) 
+![Image](https://k21academy.com/wp-content/uploads/2020/10/Diagram-02-1024x531.png?utm_source=chatgpt.com)
 
-✔ Deleting RG deletes everything inside 
+![Image](https://1.bp.blogspot.com/-6sXQH9q-Eqw/X1zewfmDshI/AAAAAAAAcrI/bPwjfm5ePcc-X6azXJstT8P-vvBOnBkBACLcBGAsYHQ/s1004/1.png?utm_source=chatgpt.com)
 
- 
+---
 
- 
+### 🔹 Storage Account Naming Rules ⚠️
 
-🔹 Terraform Code: Resource Group 
+Azure enforces strict rules:
 
- 
+* Lowercase only
+* 3–24 characters
+* Globally unique
+* No special characters
 
-resource "azurerm_resource_group" "rg" { 
+---
 
-  name     = "rg-day5-demo" 
+### 🔹 Terraform Code: Storage Account
 
-  location = "Central India" 
+```hcl
+resource "azurerm_storage_account" "sa" {
+  name                     = "day5storagedemo01"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+```
 
-} 
+---
 
- 
+### 🧠 Attribute Explanation
 
-🧪 What Terraform Does 
+| Attribute                  | Meaning                      |
+| -------------------------- | ---------------------------- |
+| `name`                     | Globally unique storage name |
+| `resource_group_name`      | Parent RG                    |
+| `location`                 | Azure region                 |
+| `account_tier`             | Standard / Premium           |
+| `account_replication_type` | LRS / GRS / ZRS              |
 
-Calls Azure ARM API 
+---
 
-Creates a resource group 
+### 🔗 Dependency Handling
 
-Stores its ID in state file 
+Notice:
 
- 
+```hcl
+resource_group_name = azurerm_resource_group.rg.name
+```
 
- 
+➡️ Terraform automatically:
 
-3️⃣ Azure Storage Account (Concept + Practice) ⭐⭐⭐ 
+* Creates Resource Group first
+* Then creates Storage Account
 
-📌 What is Azure Storage Account? 
+No manual dependency needed ✅
 
-A Storage Account provides: 
+---
 
-Blob storage 
+## **4️⃣ Complete Day-5 End-to-End Example** ⭐⭐⭐
 
-File shares 
+### 📁 Project Structure
 
-Queues 
+```text
+day-05-first-azure-resource/
+├── provider.tf
+├── main.tf
+├── outputs.tf
+```
 
-Tables 
+---
 
-Used for: 
+### 🔹 `provider.tf`
 
-Terraform remote state 
+```hcl
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.100"
+    }
+  }
+}
 
-App storage 
+provider "azurerm" {
+  features {}
+}
+```
 
-Backups 
+---
 
- 
-🔹 Storage Account Naming Rules ⚠️ 
+### 🔹 `main.tf`
 
-Azure enforces strict rules: 
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-day5-demo"
+  location = "Central India"
+}
 
-Lowercase only 
+resource "azurerm_storage_account" "sa" {
+  name                     = "day5storagedemo01"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+```
 
-3–24 characters 
+---
 
-Globally unique 
+### 🔹 `outputs.tf`
 
-No special characters 
+```hcl
+output "resource_group_name" {
+  value = azurerm_resource_group.rg.name
+}
 
+output "storage_account_name" {
+  value = azurerm_storage_account.sa.name
+}
+```
 
+---
 
-🔹 Terraform Code: Storage Account 
+### 🔹 Run Commands
 
-resource "azurerm_storage_account" "sa" { 
+```bash
+terraform init
+terraform plan
+terraform apply
+```
 
-  name                     = "day5storagedemo01" 
+✅ Resource Group & Storage Account created successfully 🎉
 
-  resource_group_name      = azurerm_resource_group.rg.name 
+---
 
-  location                 = azurerm_resource_group.rg.location 
+## **5️⃣ Verify in Azure Portal**
 
-  account_tier             = "Standard" 
+Steps:
 
-  account_replication_type = "LRS" 
+1. Login to Azure Portal
+2. Open **Resource Groups**
+3. Select `rg-day5-demo`
+4. Verify Storage Account exists
 
-} 
+---
 
- 
+## **6️⃣ Common Errors & Fixes** ⚠️
 
-## 🧠 Attribute Explanation
-----------------------------------------------------------------
-| Attribute                  | Meaning                         |
-|---------------------------|----------------------------------|
-| `name`                    | Globally unique storage name     |
-| `resource_group_name`     | Parent resource group            |
-| `location`                | Azure region                     |
-| `account_tier`            | Standard / Premium               |
-| `account_replication_type`| LRS / GRS / ZRS                  |
----------------------------------------------------------------- 
+### ❌ Storage name already exists
 
- 
 
-🔗 Dependency Handling 
+✔ Use unique name (add random suffix)
 
-Notice: 
+---
 
-resource_group_name = azurerm_resource_group.rg.name  
+### ❌ Authentication failed
 
- 
 
-➡️ Terraform automatically: 
+✔ Re-check Service Principal
 
-Creates Resource Group first 
+✔ Ensure correct subscription is set
 
-Then creates Storage Account 
+---
 
-No manual dependency needed ✅ 
+### ❌ Location mismatch
 
- 
 
- 
+✔ Storage location must match RG location (recommended)
 
-4️⃣ Complete Day-5 End-to-End Example ⭐⭐⭐ 
+---
 
- 
+## **7️⃣ GitHub & OneNote Usage**
 
-📁 Project Structure 
+### 📘 GitHub
 
-day-05-first-azure-resource/ 
+* Use this as `README.md`
+* Keep one folder per day
+* Commit `.terraform.lock.hcl`
 
-├── provider.tf 
+### 📝 OneNote
 
-├── main.tf 
+* Section: **Terraform with Azure**
+* Page: **Day-5 – First Azure Resource**
+* Subpages:
 
-├── outputs.tf 
+  * AzureRM Provider
+  * Resource Group
+  * Storage Account
 
- 
+---
 
-🔹 provider.tf 
+## **Day-5 Summary (Revision Ready)**
 
- 
 
-terraform { 
+✔ AzureRM provider connects Terraform to Azure
 
-  required_providers { 
+✔ Resource Group is the base container
 
-    azurerm = { 
+✔ Storage Account is globally unique
 
-      source  = "hashicorp/azurerm" 
+✔ Terraform manages dependencies automatically
 
-      version = "~> 3.100" 
+✔ Real Azure resources created successfully
 
-    } 
+---
 
-  } 
-
-} 
-
-  
-
-provider "azurerm" { 
-
-  features {} 
-
-} 
-
- 
-
-🔹 main.tf 
-
- 
-
-resource "azurerm_resource_group" "rg" { 
-
-  name     = "rg-day5-demo" 
-
-  location = "Central India" 
-
-} 
-
-  
-
-resource "azurerm_storage_account" "sa" { 
-
-  name                     = "day5storagedemo01" 
-
-  resource_group_name      = azurerm_resource_group.rg.name 
-
-  location                 = azurerm_resource_group.rg.location 
-
-  account_tier             = "Standard" 
-
-  account_replication_type = "LRS" 
-
-} 
-
- 
-
- 
-
-🔹 outputs.tf 
-
-output "resource_group_name" { 
-
-  value = azurerm_resource_group.rg.name 
-
-} 
-
-  
-
-output "storage_account_name" { 
-
-  value = azurerm_storage_account.sa.name 
-
-} 
-
- 
-
-🔹 Run Commands 
-
-terraform init terraform plan terraform apply  
-
-✅ Resource Group & Storage Account created successfully 🎉 
-
- 
-
- 
-
-5️⃣ Verify in Azure Portal 
-
-Steps: 
-
-Login to Azure Portal 
-
-Open Resource Groups 
-
-Select rg-day5-demo 
-
-Verify Storage Account exists 
-
- 
-
- 
-
-6️⃣ Common Errors & Fixes ⚠️ 
-
-❌ Storage name already exists 
-
-✔ Use unique name (add random suffix) 
-
- 
-
- 
-
-❌ Authentication failed 
-
-✔ Re-check Service Principal 
-
-✔ Ensure correct subscription is set 
-
- 
-
- 
-
-❌ Location mismatch 
-
-✔ Storage location must match RG location (recommended) 
-
- 
-
- 
-
-Day-5 Summary (Revision Ready) 
-
-✔ AzureRM provider connects Terraform to Azure 
-
-✔ Resource Group is the base container 
-
-✔ Storage Account is globally unique 
-
-✔ Terraform manages dependencies automatically 
-
-✔ Real Azure resources created successfully 
-
- 
-
- 
-
- 
