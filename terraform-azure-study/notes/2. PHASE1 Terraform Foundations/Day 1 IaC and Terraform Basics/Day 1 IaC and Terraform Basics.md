@@ -1,364 +1,362 @@
-## Day 1 – Infrastructure as Code (IaC) & Terraform Basics 
- 
+# **Day 1 – Infrastructure as Code (IaC) & Terraform Basics**
 
-1️⃣ What is Infrastructure as Code (IaC)? 
+---
 
-📌 Definition 
+## **1️⃣ What is Infrastructure as Code (IaC)?**
 
-Infrastructure as Code (IaC) means managing and provisioning infrastructure using code instead of manual steps. 
+### 📌 Definition
 
-Instead of: 
+**Infrastructure as Code (IaC)** means **managing and provisioning infrastructure using code instead of manual steps**.
 
-Clicking in Azure Portal 
+Instead of:
 
-Manually creating VMs, VNets, Storage 
+* Clicking in Azure Portal
+* Manually creating VMs, VNets, Storage
 
-You write code that describes: 
+You **write code** that describes:
 
-What infrastructure you want 
+* What infrastructure you want
+* Terraform creates it automatically
 
-Terraform creates it automatically 
+---
 
- 
+### 🏗 Traditional vs IaC
 
-🏗 Traditional vs IaC 
+| Traditional (Manual) | IaC               |
+| -------------------- | ----------------- |
+| Click-based setup    | Code-based        |
+| Error-prone          | Consistent        |
+| Hard to repeat       | Easily repeatable |
+| No version history   | Git versioning    |
+| Slow                 | Fast & automated  |
 
-Traditional (Manual)        IaC 
+---
 
-Click-based setup          Code-based 
+### 🧠 Real-World Example
 
-Error-prone                Consistent 
+**Manual approach:**
 
-Hard to repeat             Easily repeatable 
+* Create VM in Dev
+* Re-create same VM in Test
+* Re-create same VM in Prod
+  ➡️ Risk of mismatch
 
-No version history         Git versioning 
+**IaC approach:**
 
-Slow                       Fast & automated 
+* One Terraform file
+* Run it in all environments
+  ➡️ Same infra everywhere ✅
 
- 
+---
 
-🧠 Real-World Example 
+### 🧾 Simple IaC Example (Terraform)
 
-Manual approach: 
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-demo"
+  location = "East US"
+}
+```
 
-Create VM in Dev 
+👉 This code **is your infrastructure**.
 
-Re-create same VM in Test 
+---
 
-Re-create same VM in Prod 
+## **2️⃣ Why Terraform?**
 
+Terraform is an **open-source IaC tool** created by **HashiCorp**.
 
-➡️ Risk of mismatch 
+---
 
-IaC approach: 
+### 🔑 Key Reasons to Use Terraform
 
-One Terraform file 
+#### ✅ Cloud-agnostic
 
-Run it in all environments 
+Works with:
 
-➡️ Same infra everywhere ✅ 
+* Azure
+* AWS
+* GCP
+* On-prem
 
- 
+One tool → multiple clouds 🌍
 
- 
+---
 
-🧾 Simple IaC Example (Terraform) 
+#### ✅ Declarative Language (HCL)
 
-resource "azurerm_resource_group" "rg" { name = "rg-demo" location = "East US" }  
+You say **what you want**, not **how to do it**.
 
-👉 This code is your infrastructure. 
+Terraform figures out:
 
- 
+* Order of creation
+* Dependencies
 
- 
+---
 
-2️⃣ Why Terraform? 
+#### ✅ State Management
 
-Terraform is an open-source IaC tool created by HashiCorp. 
+Terraform tracks:
 
- 
+* What exists
+* What changed
+* What to add or delete
 
-🔑 Key Reasons to Use Terraform 
+Stored in:
 
-✅ Cloud-agnostic 
+* Local file
+* Azure Storage Account (recommended)
 
-Works with: 
+---
 
-Azure 
+#### ✅ Idempotent
 
-AWS 
+Running Terraform **multiple times gives the same result**.
 
-GCP 
+---
 
-On-prem 
+#### ✅ Huge Provider Ecosystem
 
-One tool → multiple clouds 🌍 
+Terraform supports **1000+ providers**.
 
- 
+---
 
- 
+### 🔁 Terraform Workflow
 
-✅ Declarative Language (HCL) 
+```text
+Write Code → Plan → Apply → Manage State
+```
 
-You say what you want, not how to do it. 
+| Command             | Purpose             |
+| ------------------- | ------------------- |
+| `terraform init`    | Initialize project  |
+| `terraform plan`    | Preview changes     |
+| `terraform apply`   | Create/update infra |
+| `terraform destroy` | Delete infra        |
 
-Terraform figures out: 
+---
 
-Order of creation 
+## **3️⃣ Terraform vs ARM vs Bicep (Azure)**
 
-Dependencies 
+### 📊 Comparison Table
 
- 
+| Feature          | Terraform | ARM Templates | Bicep         |
+| ---------------- | --------- | ------------- | ------------- |
+| Language         | HCL       | JSON          | DSL (simpler) |
+| Multi-cloud      | ✅ Yes     | ❌ No          | ❌ No          |
+| Learning Curve   | Medium    | Hard          | Easy          |
+| State Management | External  | Azure managed | Azure managed |
+| Readability      | ⭐⭐⭐⭐      | ⭐             | ⭐⭐⭐⭐          |
+| Community        | Huge      | Azure only    | Growing       |
 
- 
+---
 
-✅ State Management 
+### 🧩 Explanation
 
-Terraform tracks: 
+#### 🔹 ARM Templates
 
-What exists 
+* Native Azure IaC
+* Very **verbose JSON**
+* Hard to read & maintain
 
-What changed 
+Example:
 
-What to add or delete 
+```json
+{
+  "type": "Microsoft.Compute/virtualMachines",
+  "name": "vm1"
+}
+```
 
-Stored in: 
+---
 
-Local file 
+#### 🔹 Bicep
 
-Azure Storage Account (recommended) 
+* **Simplified ARM**
+* Compiles into ARM
+* Azure-only
 
- 
+Example:
 
- 
+```bicep
+resource vm 'Microsoft.Compute/virtualMachines@2021-07-01' = {
+  name: 'vm1'
+}
+```
 
-✅ Idempotent 
+---
 
-Running Terraform multiple times gives the same result. 
+#### 🔹 Terraform (Preferred)
 
- 
+* Clean syntax
+* Multi-cloud
+* Strong state & modularity
 
- 
+Example:
 
-✅ Huge Provider Ecosystem 
+```hcl
+resource "azurerm_virtual_machine" "vm" {
+  name = "vm1"
+}
+```
 
-Terraform supports 1000+ providers. 
+---
 
- 
+### 🧠 When to Use What?
 
- 
+| Scenario               | Best Tool   |
+| ---------------------- | ----------- |
+| Multi-cloud            | Terraform   |
+| Azure-only & simple    | Bicep       |
+| Existing ARM heavy org | ARM         |
+| Enterprise + CI/CD     | Terraform ✅ |
 
-🔁 Terraform Workflow 
+---
 
-Write Code → Plan → Apply → Manage State  
+## **4️⃣ Terraform Architecture (Very Important ⭐)**
 
-Command 
+![Image](https://spaceliftio.wpcomstaging.com/wp-content/uploads/2023/03/terraform-architecture-diagram-1.png?utm_source=chatgpt.com)
 
-Purpose 
+![Image](https://www.devopsschool.com/blog/wp-content/uploads/2023/04/terraform-workflow-1-1024x512.jpg?utm_source=chatgpt.com)
 
-terraform init 
+![Image](https://spacelift.io/_next/image?q=75\&url=https%3A%2F%2Fspaceliftio.wpcomstaging.com%2Fwp-content%2Fuploads%2F2023%2F03%2Fterraform-architecture-diagram.png\&w=750\&utm_source=chatgpt.com)
 
-Initialize project 
+![Image](https://jayendrapatil.com/wp-content/uploads/2020/11/Terraform_Architecture-2048x906.png?utm_source=chatgpt.com)
 
-terraform plan 
+---
 
-Preview changes 
+### 🧩 Terraform Core Components
 
-terraform apply 
+```text
+User Code → Terraform Core → Provider → Cloud API
+```
 
-Create/update infra 
+---
 
-terraform destroy 
+### 1️⃣ Terraform Configuration (Code)
 
-Delete infra 
+* Written in **.tf files**
+* Uses **HCL**
 
- ## Terraform vs ARM vs Bicep (Azure)
----------------------------------------------------------------------
-| Feature             | Terraform  | ARM Templates  | Bicep         |
-|---------------------|------------|----------------|---------------|
-| Language            | HCL        | JSON           | DSL (simpler) |
-| Multi-cloud         | ✅ Yes    | ❌ No          | ❌ No         |
-| Learning Curve      | Medium     | Hard           | Easy          |
-| State Management    | External   | Azure managed  | Azure managed |
-| Readability         | ⭐⭐⭐⭐ | ⭐             | ⭐⭐⭐⭐    |
-| Community & Support | Huge       | Azure only     | Growing       |
- ---------------------------------------------------------------------
+Example:
 
- 
+```hcl
+resource "azurerm_storage_account" "sa" {
+  name                     = "mystorage123"
+  location                 = "East US"
+  resource_group_name      = "rg-demo"
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+```
 
-🧩 Explanation 
+---
 
-🔹 ARM Templates 
+### 2️⃣ Terraform Core
 
-Native Azure IaC 
+Responsible for:
 
-Very verbose JSON 
+* Parsing code
+* Creating execution plan
+* Managing state
+* Dependency graph
 
-Hard to read & maintain 
+---
 
-Example: 
+### 3️⃣ Providers
 
-{ "type": "Microsoft.Compute/virtualMachines", "name": "vm1" }  
+Providers act as **bridge between Terraform and cloud APIs**.
 
- 
+Example:
 
-🔹 Bicep 
+* `azurerm` → Azure
+* `aws` → AWS
 
-Simplified ARM 
+```hcl
+provider "azurerm" {
+  features {}
+}
+```
 
-Compiles into ARM 
+---
 
-Azure-only 
+### 4️⃣ State File (`terraform.tfstate`)
 
-Example: 
+Stores:
 
-resource vm 'Microsoft.Compute/virtualMachines@2021-07-01' = { name: 'vm1' }  
+* Resource IDs
+* Metadata
+* Current infra state
 
- 
+Why important?
 
-🔹 Terraform (Preferred) 
+* Terraform compares **desired state vs actual state**
 
-Clean syntax 
+---
 
-Multi-cloud 
+### 5️⃣ Execution Plan
 
-Strong state & modularity 
+`terraform plan`:
 
-Example: 
+* Shows **what will be created, changed, deleted**
+* No changes yet (safe preview)
 
-resource "azurerm_virtual_machine" "vm" { name = "vm1" }  
+---
 
+### 🔁 Complete Flow Example
 
- ## 🧠 When to Use What?
----------------------------------------------------------
-| Scenario                           | Best Tool        |
-|------------------------------------|------------------|
-| Multi-cloud                        | Terraform        |
-| Azure-only & simple deployments   | Bicep             |
-| Existing ARM-heavy organization   | ARM Templates     |
-| Enterprise-scale + CI/CD pipelines| Terraform ✅     |
---------------------------------------------------------
+```text
+terraform init
+   ↓
+terraform plan
+   ↓
+terraform apply
+```
 
+---
 
+## **5️⃣ Simple End-to-End Example (Mental Model)**
 
-4️⃣ Terraform Architecture (Very Important ⭐)  
+### 🎯 Goal: Create Azure Resource Group
 
+**Step 1 – Write Code**
 
-🧩 Terraform Core Components 
+```hcl
+resource "azurerm_resource_group" "rg" {
+  name     = "rg-day1"
+  location = "Central India"
+}
+```
 
-User Code → Terraform Core → Provider → Cloud API  
+**Step 2 – Plan**
 
- 
+```bash
+terraform plan
+```
 
-1️⃣ Terraform Configuration (Code) 
+➡️ “1 resource will be created”
 
-Written in .tf files 
+**Step 3 – Apply**
 
-Uses HCL 
+```bash
+terraform apply
+```
 
-Example: 
+➡️ Resource created in Azure 🎉
 
-resource "azurerm_storage_account" "sa" { name = "mystorage123" location = "East US" resource_group_name = "rg-demo" account_tier = "Standard" account_replication_type = "LRS" }  
+---
 
- 
+## **Day-1 Summary**
 
-2️⃣ Terraform Core 
 
-Responsible for: 
+✔ IaC = Infrastructure through code
 
-Parsing code 
+✔ Terraform = multi-cloud, declarative IaC tool
 
-Creating execution plan 
+✔ Terraform beats ARM/Bicep for enterprise use
 
-Managing state 
+✔ Architecture = Core + Provider + State
 
-Dependency graph 
+✔ Plan before Apply always
 
- 
-
- 
-
-3️⃣ Providers 
-
-Providers act as bridge between Terraform and cloud APIs. 
-
-Example: 
-
-azurerm → Azure 
-
-aws → AWS 
-
-provider "azurerm" { features {} }  
-
- 
-
-4️⃣ State File (terraform.tfstate) 
-
-Stores: 
-
-Resource IDs 
-
-Metadata 
-
-Current infra state 
-
-Why important? 
-
-Terraform compares desired state vs actual state 
-
- 
-
- 
-
-5️⃣ Execution Plan 
-
-terraform plan: 
-
-Shows what will be created, changed, deleted 
-
-No changes yet (safe preview) 
-
- 
-
- 
-
-🔁 Complete Flow Example 
-
-terraform init ↓ terraform plan ↓ terraform apply  
-
- 
-
-5️⃣ Simple End-to-End Example (Mental Model) 
-
-🎯 Goal: Create Azure Resource Group 
-
-Step 1 – Write Code 
-
-resource "azurerm_resource_group" "rg" { name = "rg-day1" location = "Central India" }  
-
-Step 2 – Plan 
-
-terraform plan  
-
-➡️ “1 resource will be created” 
-
-Step 3 – Apply 
-
-terraform apply  
-
-➡️ Resource created in Azure 🎉 
-
-
-Day-1 Summary (Revision Ready) 
-
-✔ IaC = Infrastructure through code 
-
-✔ Terraform = multi-cloud, declarative IaC tool 
-
-✔ Terraform beats ARM/Bicep for enterprise use 
-
-✔ Architecture = Core + Provider + State 
-
-✔ Plan before Apply always 
-
- 
+---
