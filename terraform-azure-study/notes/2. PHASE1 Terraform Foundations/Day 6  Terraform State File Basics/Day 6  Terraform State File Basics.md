@@ -1,341 +1,313 @@
-Day 6 – Terraform State File Basics 
+# **Day 6 – Terraform State File Basics**
 
-🎯 Goal of Day-6 
+🎯 **Goal of Day-6**
+By the end of this day, you will clearly understand:
 
-By the end of this day, you will clearly understand: 
+* What `terraform.tfstate` is
+* Why Terraform state is critical
+* How Terraform uses state internally
+* Why **local state is risky** in real-world teams
 
-What terraform.tfstate is 
+---
 
-Why Terraform state is critical 
+## **1️⃣ What is `terraform.tfstate`?**
 
-How Terraform uses state internally 
+### 📌 Definition
 
-Why local state is risky in real-world teams 
+`terraform.tfstate` is a **JSON file** that Terraform uses to **track real infrastructure**.
 
- 
+It acts as Terraform’s **source of truth**.
 
- 
+Terraform compares:
 
-1️⃣ What is terraform.tfstate? 
+```text
+Desired State (HCL code)
+vs
+Current State (terraform.tfstate)
+```
 
-📌 Definition 
+---
 
-terraform.tfstate is a JSON file that Terraform uses to track real infrastructure. 
+### 🧠 What State Stores
 
-It acts as Terraform’s source of truth. 
+The state file contains:
 
- 
+* Resource IDs (Azure resource IDs)
+* Resource attributes
+* Dependency relationships
+* Metadata about providers
 
-Terraform compares: 
+---
 
-Desired State (HCL code) vs Current State (terraform.tfstate)  
+### 🧪 Example (Simplified State Snippet)
 
- 
+```json
+{
+  "resources": [
+    {
+      "type": "azurerm_resource_group",
+      "name": "rg",
+      "instances": [
+        {
+          "attributes": {
+            "name": "rg-day5-demo",
+            "location": "centralindia"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
 
-🧠 What State Stores 
+📌 **Never edit this file manually**.
 
-The state file contains: 
+---
 
-Resource IDs (Azure resource IDs) 
+## **2️⃣ Why State Matters (Very Important ⭐⭐⭐)**
 
-Resource attributes 
+### 🔍 Terraform Without State?
 
-Dependency relationships 
+Without state, Terraform:
+❌ Cannot know what already exists
 
-Metadata about providers 
+❌ Will try to recreate everything
 
- 
+❌ Cannot detect drift
 
- 
+❌ Cannot safely update resources
 
-🧪 Example (Simplified State Snippet) 
+---
 
- 
+### 🧠 Terraform Decision Flow
 
-{ 
+```text
+terraform plan
+   ↓
+Read terraform.tfstate
+   ↓
+Compare with .tf code
+   ↓
+Generate execution plan
+```
 
-  "resources": [ 
+---
 
-    { 
+### 🧪 Real Example
 
-      "type": "azurerm_resource_group", 
+**You change code:**
 
-      "name": "rg", 
+```hcl
+location = "East US"
+```
 
-      "instances": [ 
+Terraform checks state:
 
-        { 
+```text
+Current: Central India
+Desired: East US
+```
 
-          "attributes": { 
+➡️ Terraform plans **MODIFY**, not CREATE.
 
-            "name": "rg-day5-demo", 
+---
 
-            "location": "centralindia" 
+## **3️⃣ What Happens If State is Deleted?** ⚠️
 
-          } 
+If `terraform.tfstate` is deleted:
 
-        } 
+* Terraform thinks **nothing exists**
+* It may try to recreate resources
+* Duplicate resources or failures occur
 
-      ] 
+📌 Azure resources still exist, but Terraform **forgets them**.
 
-    } 
+---
 
-  ] 
+## **4️⃣ Local State (Default Behavior)**
 
-} 
+### 📌 What is Local State?
 
- 
+By default, Terraform stores state **locally**:
 
- 
+```text
+terraform.tfstate
+terraform.tfstate.backup
+```
 
-📌 Never edit this file manually. 
+Location:
 
- 
+* Same directory as `.tf` files
 
- 
+---
 
-2️⃣ Why State Matters (Very Important ⭐⭐⭐) 
+### 🧪 Local State Example
 
-🔍 Terraform Without State? 
+```bash
+terraform apply
+```
 
-Without state, Terraform: 
+Creates:
 
-❌ Cannot know what already exists 
+```text
+terraform.tfstate
+terraform.tfstate.backup
+```
 
-❌ Will try to recreate everything 
+---
 
-❌ Cannot detect drift 
+### 🧠 Backup File
 
-❌ Cannot safely update resources 
+* `terraform.tfstate.backup` = previous state
+* Automatically created by Terraform
 
- 
+---
 
- 
+## **5️⃣ Local State Risks (Real-World Problems)** 🚨
 
-🧠 Terraform Decision Flow 
+### ❌ Risk 1: No Team Collaboration
 
- 
+* Each engineer has a different state
+* Changes conflict
+* Terraform becomes unreliable
 
-terraform plan 
+---
 
-   ↓ 
+### ❌ Risk 2: No State Locking
 
-Read terraform.tfstate 
+Two people run:
 
-   ↓ 
+```bash
+terraform apply
+```
 
-Compare with .tf code 
+At the same time →
 
-   ↓ 
+❌ Race condition
 
-Generate execution plan 
+❌ Corrupted state
 
- 
 
- 
+---
 
-🧪 Real Example 
+### ❌ Risk 3: Secrets in Plain Text
 
-You change code: 
+State file may contain:
 
-location = "East US"  
+* Storage keys
+* Passwords
+* Connection strings
 
-Terraform checks state: 
+⚠️ Stored as **plain text JSON**
 
-Current: Central India Desired: East US  
+---
 
-➡️ Terraform plans MODIFY, not CREATE. 
+### ❌ Risk 4: Accidental Deletion
 
- 
+* Laptop crash
+* Folder deleted
+* No recovery
 
- 
+---
 
-3️⃣ What Happens If State is Deleted? ⚠️ 
+### ❌ Risk 5: No Audit History
 
-If terraform.tfstate is deleted: 
+* No tracking of who changed what
+* No rollback mechanism
 
-Terraform thinks nothing exists 
+---
 
-It may try to recreate resources 
+## **6️⃣ Visual Mental Model (State Importance)**
 
-Duplicate resources or failures occur 
+![Image](https://cdn.prod.website-files.com/644656ba41efb6b601e93ca6/666ca94313bc92617e6eb9fa_AD_4nXe-5_WQu-YNEB3tjjsejMPFliYTzRNjfX5D4sBknnJ9T-25KaQ1UAv3JsxDelee3icN2knxbdR7O6Upx--gqbvpij3hpWqgifxPez8_0ZtHflV45C1BsL3Wzs_tSLjn7WhK9JoiuY6EAd3gAtPfFU3-HaJ-.png?utm_source=chatgpt.com)
 
-📌 Azure resources still exist, but Terraform forgets them. 
+![Image](https://miro.medium.com/v2/resize%3Afit%3A1400/1%2AazlDiCZlFfytmHqEF3reyw.png?utm_source=chatgpt.com)
 
- 
+![Image](https://miro.medium.com/v2/resize%3Afit%3A1200/1%2AazlDiCZlFfytmHqEF3reyw.png?utm_source=chatgpt.com)
 
- 
+---
 
-4️⃣ Local State (Default Behavior) 
+## **7️⃣ State Drift (Hidden Danger)** ⭐⭐
 
-📌 What is Local State? 
+### 📌 What is Drift?
 
-By default, Terraform stores state locally: 
+Drift occurs when:
 
-terraform.tfstate  
+* Someone changes infrastructure manually
+* Terraform state is not updated
 
-terraform.tfstate.backup  
+---
 
- 
+### 🧪 Example
 
-Location: 
+1. Terraform creates Storage Account
+2. Someone deletes it from Azure Portal
+3. Terraform state still thinks it exists
 
-Same directory as .tf files 
+Next `terraform plan`:
 
- 
+```text
++ create azurerm_storage_account
+```
 
- 
+➡️ Terraform **fixes drift** automatically.
 
-🧪 Local State Example 
+---
 
-terraform apply  
+## **8️⃣ Best Practices for State (Day-6 Key Takeaways)**
 
-Creates: 
+✔ Never commit `terraform.tfstate` to GitHub
 
-terraform.tfstate  
+✔ Never edit state manually
 
-terraform.tfstate.backup  
+✔ Use **remote backend** for teams
 
- 
+✔ Enable **state locking**
 
-🧠 Backup File 
+✔ Protect state like credentials
 
-terraform.tfstate.backup = previous state 
+---
 
-Automatically created by Terraform 
+## **9️⃣ GitHub & OneNote Structure**
 
- 
+### 📘 GitHub
 
- 
+```text
+day-06-terraform-state-basics/
+├── README.md
+└── .gitignore
+```
 
-5️⃣ Local State Risks (Real-World Problems) 🚨 
+Add to `.gitignore`:
 
-❌ Risk 1: No Team Collaboration 
+```gitignore
+terraform.tfstate*
+```
 
-Each engineer has a different state 
+---
 
-Changes conflict 
+### 📝 OneNote
 
-Terraform becomes unreliable 
+* **Section:** Terraform Core
+* **Page:** Day-6 – State File Basics
+* Subpages:
 
- 
+  * Why state matters
+  * Local state risks
+  * Drift examples
 
- 
+---
 
-❌ Risk 2: No State Locking 
+## **Day-6 Summary (Revision Ready)**
 
-Two people run: 
+✔ `terraform.tfstate` tracks real infrastructure
 
-terraform apply  
+✔ State enables safe updates & deletes
 
-At the same time → 
+✔ Local state works only for learning
 
-❌ Race condition 
+✔ Local state is risky for teams
 
-❌ Corrupted state 
+✔ Remote state is mandatory in production
 
- 
-
- 
-
-❌ Risk 3: Secrets in Plain Text 
-
-State file may contain: 
-
-Storage keys 
-
-Passwords 
-
-Connection strings 
-
-⚠️ Stored as plain text JSON 
-
- 
-
- 
-
-❌ Risk 4: Accidental Deletion 
-
-Laptop crash 
-
-Folder deleted 
-
-No recovery 
-
- 
-
- 
-
-❌ Risk 5: No Audit History 
-
-No tracking of who changed what 
-
-No rollback mechanism 
-
- 
-
- 
-
-State Drift (Hidden Danger) ⭐⭐ 
-
-📌 What is Drift? 
-
-Drift occurs when: 
-
-Someone changes infrastructure manually 
-
-Terraform state is not updated 
-
- 
-
- 
-
-🧪 Example 
-
-Terraform creates Storage Account 
-
-Someone deletes it from Azure Portal 
-
-Terraform state still thinks it exists 
-
-Next terraform plan: 
-
-+ create azurerm_storage_account  
-
-➡️ Terraform fixes drift automatically. 
-
- 
-
- 
-
-8️⃣ Best Practices for State (Day-6 Key Takeaways) 
-
-✔ Never commit terraform.tfstate to GitHub 
-
-✔ Never edit state manually 
-
-✔ Use remote backend for teams 
-
-✔ Enable state locking 
-
-✔ Protect state like credentials 
-
- 
-
-Day-6 Summary (Revision Ready) 
-
-✔ terraform.tfstate tracks real infrastructure 
-
-✔ State enables safe updates & deletes 
-
-✔ Local state works only for learning 
-
-✔ Local state is risky for teams 
-
-✔ Remote state is mandatory in production 
-
- 
-
- 
-
- 
+---
