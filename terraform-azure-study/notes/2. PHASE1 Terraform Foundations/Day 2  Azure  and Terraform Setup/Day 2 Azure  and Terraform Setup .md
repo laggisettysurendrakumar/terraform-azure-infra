@@ -1,358 +1,293 @@
-Day 2 – Azure + Terraform Setup 
+# **Day 2 – Azure + Terraform Setup**
 
+🎯 **Goal of Day-2**
+By the end of this day, you will:
 
-🎯 Goal of Day-2 
+* Install Terraform & Azure CLI
+* Create an Azure Service Principal
+* Authenticate Terraform with Azure securely
 
-By the end of this day, you will: 
+---
 
-Install Terraform & Azure CLI 
+## **1️⃣ Install Terraform**
 
-Create an Azure Service Principal 
+### 📌 What is Terraform?
 
-Authenticate Terraform with Azure securely 
- 
+Terraform is a CLI tool used to **provision and manage infrastructure as code**.
 
-1️⃣ Install Terraform 
+---
 
-📌 What is Terraform? 
+### 🔹 Step 1: Download Terraform
 
-Terraform is a CLI tool used to provision and manage infrastructure as code. 
+👉 Download from official site:
+[https://developer.hashicorp.com/terraform/downloads](https://developer.hashicorp.com/terraform/downloads)
 
- 
+Choose based on OS:
 
- 
+* **Windows** → `.zip`
+* **Linux** → `.zip`
+* **macOS** → `.zip`
 
-🔹 Step 1: Download Terraform 
+---
 
-👉 Download from official site: 
+### 🔹 Step 2: Install Terraform
 
-https://developer.hashicorp.com/terraform/downloads 
+#### **Windows**
 
-Choose based on OS: 
+1. Extract the `.zip` file
+2. Copy `terraform.exe`
+3. Paste into:
 
-Windows → .zip 
+   ```
+   C:\Program Files\Terraform\
+   ```
+4. Add this path to **Environment Variables → PATH**
 
-Linux → .zip 
+---
 
-macOS → .zip 
+#### **Linux / macOS**
 
- 
+```bash
+unzip terraform_*.zip
+sudo mv terraform /usr/local/bin/
+```
 
- 
+---
 
-🔹 Step 2: Install Terraform 
+### 🔹 Step 3: Verify Installation
 
-Windows 
+```bash
+terraform -version
+```
 
-Extract the .zip file 
+✅ Output should show Terraform version.
 
-Copy terraform.exe 
+---
 
-Paste into: 
+### 📝 Notes (OneNote Tip)
 
-C:\Program Files\Terraform\  
+> Terraform is **not cloud-specific**. Cloud access is handled via providers (Azure, AWS, etc.).
 
-Add this path to Environment Variables → PATH 
+---
 
- 
+## **2️⃣ Install Azure CLI**
 
- 
+### 📌 What is Azure CLI?
 
-Linux / macOS 
+Azure CLI (`az`) allows you to:
 
-unzip terraform_*.zip  
+* Login to Azure
+* Create service principals
+* Manage Azure resources via command line
 
-sudo mv terraform /usr/local/bin/  
+---
 
- 
+### 🔹 Install Azure CLI
 
-🔹 Step 3: Verify Installation 
+👉 Official docs:
+[https://learn.microsoft.com/cli/azure/install-azure-cli](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
-terraform -version  
+---
 
-✅ Output should show Terraform version. 
+#### **Windows**
 
- 
+* Download and install `.msi` file
 
- 
+#### **Linux**
 
-📝 Notes (OneNote Tip) 
+```bash
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+```
 
-Terraform is not cloud-specific. Cloud access is handled via providers (Azure, AWS, etc.). 
+#### **macOS**
 
- 
+```bash
+brew install azure-cli
+```
 
- 
+---
 
-2️⃣ Install Azure CLI 
+### 🔹 Verify Installation
 
-📌 What is Azure CLI? 
+```bash
+az version
+```
 
-Azure CLI (az) allows you to: 
+---
 
-Login to Azure 
+## **3️⃣ Login to Azure**
 
-Create service principals 
+```bash
+az login
+```
 
-Manage Azure resources via command line 
+* Browser will open
+* Login using your Azure account
+* Subscription details will be displayed
 
- 
+---
 
- 
+### 🔹 Set Default Subscription (Important)
 
-🔹 Install Azure CLI 
+```bash
+az account list --output table
+az account set --subscription "<SUBSCRIPTION_ID>"
+```
 
-👉 Official docs: 
+---
 
-https://learn.microsoft.com/cli/azure/install-azure-cli 
+### 📝 Notes
 
- 
+> Always confirm the correct subscription before creating resources.
 
- 
+---
 
-Windows 
+## **4️⃣ Create Azure Service Principal**
 
-Download and install .msi file 
+### 📌 What is a Service Principal?
 
-Linux 
+A **Service Principal (SP)** is like a **non-human user** that Terraform uses to authenticate with Azure.
 
-curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash  
+✅ Secure
+✅ CI/CD friendly
+✅ No interactive login required
 
-macOS 
+---
 
-brew install azure-cli  
+### 🔹 Step 1: Create Service Principal
 
- 
+```bash
+az ad sp create-for-rbac \
+  --name "terraform-sp" \
+  --role="Contributor" \
+  --scopes="/subscriptions/<SUBSCRIPTION_ID>"
+```
 
-🔹 Verify Installation 
+---
 
-az version  
+### 🔹 Step 2: Save Output Securely
 
- 
+You will get output like this:
 
-3️⃣ Login to Azure 
+```json
+{
+  "appId": "xxxx-xxxx-xxxx",
+  "displayName": "terraform-sp",
+  "password": "xxxx-xxxx",
+  "tenant": "xxxx-xxxx"
+}
+```
 
-az login  
+📌 **Save these values** — you will need them.
 
-Browser will open 
+---
 
-Login using your Azure account 
+### 🔐 Values Meaning
 
-Subscription details will be displayed 
+| Field          | Used As         |
+| -------------- | --------------- |
+| appId          | client_id       |
+| password       | client_secret   |
+| tenant         | tenant_id       |
+| subscriptionId | subscription_id |
 
- 
+---
 
- 
+## **5️⃣ Authenticate Terraform with Azure**
 
-🔹 Set Default Subscription (Important) 
+Terraform needs **4 values** to authenticate:
 
-az account list --output table  
+* Subscription ID
+* Client ID
+* Client Secret
+* Tenant ID
 
-az account set --subscription "<SUBSCRIPTION_ID>"  
+---
 
- 
+### 🔹 Option 1 (Recommended): Environment Variables ✅
 
-📝 Notes 
+#### **Windows (PowerShell)**
 
-Always confirm the correct subscription before creating resources. 
+```powershell
+$env:ARM_SUBSCRIPTION_ID="xxxx"
+$env:ARM_CLIENT_ID="xxxx"
+$env:ARM_CLIENT_SECRET="xxxx"
+$env:ARM_TENANT_ID="xxxx"
+```
 
- 
+---
 
- 
+#### **Linux / macOS**
 
-4️⃣ Create Azure Service Principal 
+```bash
+export ARM_SUBSCRIPTION_ID="xxxx"
+export ARM_CLIENT_ID="xxxx"
+export ARM_CLIENT_SECRET="xxxx"
+export ARM_TENANT_ID="xxxx"
+```
 
-📌 What is a Service Principal? 
+---
 
-A Service Principal (SP) is like a non-human user that Terraform uses to authenticate with Azure. 
+### 🔹 Option 2: Provider Block (Not recommended for prod)
 
-✅ Secure 
+```hcl
+provider "azurerm" {
+  features {}
 
-✅ CI/CD friendly 
+  subscription_id = "xxxx"
+  client_id       = "xxxx"
+  client_secret   = "xxxx"
+  tenant_id       = "xxxx"
+}
+```
 
-✅ No interactive login required 
+⚠️ **Never commit secrets to GitHub**
 
- 
+---
 
- 
+## **6️⃣ Validate Terraform + Azure Setup**
 
-🔹 Step 1: Create Service Principal 
+### 🔹 Create Test File
 
-az ad sp create-for-rbac \ 
+Create `main.tf`:
 
-  --name "terraform-sp" \ 
+```hcl
+provider "azurerm" {
+  features {}
+}
 
-  --role="Contributor" \ 
+resource "azurerm_resource_group" "test" {
+  name     = "rg-terraform-day2"
+  location = "Central India"
+}
+```
 
-  --scopes="/subscriptions/<SUBSCRIPTION_ID>" 
+---
 
- 
+### 🔹 Run Terraform Commands
 
- 
+```bash
+terraform init
+terraform plan
+terraform apply
+```
 
-🔹 Step 2: Save Output Securely 
+✅ If resource group is created → setup is successful 🎉
 
-You will get output like this: 
+---
 
-{ 
+## **Day-2 Summary**
 
-  "appId": "xxxx-xxxx-xxxx", 
 
-  "displayName": "terraform-sp", 
+✔ Terraform installed
 
-  "password": "xxxx-xxxx", 
+✔ Azure CLI installed
 
-  "tenant": "xxxx-xxxx" 
+✔ Azure authenticated
 
-} 
+✔ Service Principal created
 
- 
+✔ Terraform connected to Azure
 
-📌 Save these values — you will need them. 
 
- 
-
- 
-
-🔐 Values Meaning 
-
-Field 
-
-Used As 
-
-appId 
-
-client_id 
-
-password 
-
-client_secret 
-
-tenant 
-
-tenant_id 
-
-subscriptionId 
-
-subscription_id 
-
- 
-
- 
-
-5️⃣ Authenticate Terraform with Azure 
-
-Terraform needs 4 values to authenticate: 
-
-Subscription ID 
-
-Client ID 
-
-Client Secret 
-
-Tenant ID 
-
- 
-
- 
-
-🔹 Option 1 (Recommended): Environment Variables ✅ 
-
-Windows (PowerShell) 
-
-$env:ARM_SUBSCRIPTION_ID="xxxx" 
-
-$env:ARM_CLIENT_ID="xxxx" 
-
-$env:ARM_CLIENT_SECRET="xxxx" 
-
-$env:ARM_TENANT_ID="xxxx" 
-
- 
-
-Linux / macOS 
-
-export ARM_SUBSCRIPTION_ID="xxxx" 
-
-export ARM_CLIENT_ID="xxxx" 
-
-export ARM_CLIENT_SECRET="xxxx" 
-
-export ARM_TENANT_ID="xxxx" 
-
- 
-
-🔹 Option 2: Provider Block (Not recommended for prod) 
-
-provider "azurerm" { 
-
-  features {} 
-
-  
-
-  subscription_id = "xxxx" 
-
-  client_id       = "xxxx" 
-
-  client_secret   = "xxxx" 
-
-  tenant_id       = "xxxx" 
-
-} 
-
- 
-
-⚠️ Never commit secrets to GitHub 
-
- 
-
- 
-
-6️⃣ Validate Terraform + Azure Setup 
-
-🔹 Create Test File 
-
-Create main.tf: 
-
-provider "azurerm" { 
-
-  features {} 
-
-} 
-
-  
-
-resource "azurerm_resource_group" "test" { 
-
-  name     = "rg-terraform-day2" 
-
-  location = "Central India" 
-
-} 
-
- 
-
-🔹 Run Terraform Commands 
-
-terraform init  
-
-terraform plan  
-
-terraform apply  
-
-✅ If resource group is created → setup is successful 🎉 
-
-
-Day-2 Summary (Revision Ready) 
-
-✔ Terraform installed 
-
-✔ Azure CLI installed 
-
-✔ Azure authenticated 
-
-✔ Service Principal created 
-
-✔ Terraform connected to Azure 
-
- 
+---
