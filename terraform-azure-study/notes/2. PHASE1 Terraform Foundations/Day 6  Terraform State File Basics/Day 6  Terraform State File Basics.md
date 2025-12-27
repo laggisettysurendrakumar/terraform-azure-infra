@@ -268,37 +268,7 @@ Next `terraform plan`:
 
 ---
 
-## **9️⃣ GitHub & OneNote Structure**
-
-### 📘 GitHub
-
-```text
-day-06-terraform-state-basics/
-├── README.md
-└── .gitignore
-```
-
-Add to `.gitignore`:
-
-```gitignore
-terraform.tfstate*
-```
-
----
-
-### 📝 OneNote
-
-* **Section:** Terraform Core
-* **Page:** Day-6 – State File Basics
-* Subpages:
-
-  * Why state matters
-  * Local state risks
-  * Drift examples
-
----
-
-## **Day-6 Summary (Revision Ready)**
+## **Day-6 Summary**
 
 ✔ `terraform.tfstate` tracks real infrastructure
 
