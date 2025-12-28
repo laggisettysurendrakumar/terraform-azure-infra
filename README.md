@@ -1,10 +1,23 @@
 # 🚀 Terraform with Azure — Beginner to Advanced Learning Path (45 Days)
 
-This **Azure-focused Terraform learning path** is designed to take you from **Beginner → Advanced level**, with **clear prerequisites**, **step-by-step progression**, and a **day-wise schedule**.
+## Disclaimer
 
-✅ Aligned with **real Azure DevOps / Cloud Engineer job expectations**
+This repository is created for learning and educational purposes only.
+
+The content in this repository has been compiled and refined with the assistance of ChatGPT, along with publicly available learning resources. While every effort has been made to present the material in an original and structured manner, some concepts and explanations may overlap with existing documentation or educational content.
+
+All credits and rights belong to the respective original authors and owners.
+If any content, code snippets, explanations, or images are unintentionally similar to or derived from other sources, no copyright infringement is intended.
+
+Most images used in this repository are publicly available and may include author watermarks where applicable. These images are used strictly for educational and illustrative purposes.
+
+If you believe that any content in this repository violates your copyright or usage rights, please contact me and I will promptly review and take appropriate action, including removal or attribution.
+
+📧 Contact: surilsk4@gmail.com
 
 ---
+
+This **Azure-focused Terraform learning path** is designed to take you from **Beginner → Advanced level**, with **clear prerequisites**, **step-by-step progression**, and a **day-wise schedule**.
 
 ## 🎯 Final Goal (Advanced Level)
 
