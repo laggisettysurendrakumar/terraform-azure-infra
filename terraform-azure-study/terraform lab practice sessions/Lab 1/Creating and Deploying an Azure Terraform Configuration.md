@@ -56,7 +56,7 @@ Add the following **Terraform settings block** to `main.tf`:
 terraform {
   required_providers {
     azurerm = {
-      source  = "XYZCompany/azurerm"
+      source  = "hashicorp/azurerm"
       version = "2.40.0"
     }
   }
@@ -142,7 +142,7 @@ Your full Terraform configuration should now look like this:
 terraform {
   required_providers {
     azurerm = {
-      source  = "XYZCompany/azurerm"
+      source  = "hashicorp/azurerm"
       version = "2.40.0"
     }
   }
